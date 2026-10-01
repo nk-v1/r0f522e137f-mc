@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Prompt, One Reel</title>
+<!-- Optional web fonts. With no internet the deck falls back to system fonts and still works. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;600;700&display=swap">
+<style>
+:root{
+  --sky:#6CCEF6; --pink:#FB6DA6; --yellow:#F9D117; --ink:#231E1F; --cream:#F6EDE2; --red:#B03222; --lcd:#B9C9A8;
+  --display:"Archivo Black","Arial Black","Helvetica Neue",Impact,sans-serif;
+  --label:"Barlow Condensed","DIN Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+  --body:Figtree,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#151112;color:var(--ink);font-family:var(--body);overflow:hidden}
+#viewport{position:fixed;inset:0;display:grid;place-items:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;flex:none}
+.slide{position:absolute;inset:0;padding:54px 72px 60px;display:none;overflow:hidden;background:var(--cream);border-radius:4px}
+.slide.active{display:block}
+.slide > .inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;gap:18px}
+/* colour fields */
+.bg-ink{background:var(--ink);color:var(--cream)}
+.bg-sky{background:var(--sky)}
+.bg-pink{background:var(--pink)}
+.bg-yellow{background:var(--yellow)}
+.bg-cream{background:var(--cream)}
+.split-yp{background:linear-gradient(162deg,var(--yellow) 0 58%,var(--ink) 58% 58.6%,var(--pink) 58.6% 100%)}
+.split-sy{background:linear-gradient(180deg,var(--sky) 0 72%,var(--ink) 72% 72.4%,var(--yellow) 72.4% 100%)}
+.rays::before{content:"";position:absolute;inset:-40%;z-index:0;opacity:.22;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,var(--ink) 0 2deg,transparent 2deg 11deg)}
+.rays.light::before{background:repeating-conic-gradient(from 0deg at 50% 50%,var(--yellow) 0 2deg,transparent 2deg 11deg);opacity:.25}
+.grain::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.08;
+  background-image:radial-gradient(rgba(0,0,0,.6) 1px,transparent 1px);background-size:3px 3px}
+/* type */
+.kicker{font:700 20px/1 var(--label);letter-spacing:.16em;text-transform:uppercase}
+h1{font:400 76px/.95 var(--display);letter-spacing:-.02em;margin:0}
+h2{font:400 50px/1.02 var(--display);letter-spacing:-.015em;margin:0}
+h3{font:700 28px/1.1 var(--label);letter-spacing:.02em;margin:0}
+p,li{font-size:23px;line-height:1.38;margin:0}
+ul{margin:0;padding-left:26px;display:grid;gap:8px}
+.small p,.small li{font-size:19px}
+.tiny{font-size:15px!important;line-height:1.35}
+.muted{opacity:.72}
+code,.mono{font-family:var(--mono);font-size:.86em;background:rgba(35,30,31,.08);padding:1px 6px;border-radius:5px}
+.bg-ink code{background:rgba(246,237,226,.12)}
+.hl{background:var(--yellow);color:var(--ink);padding:0 8px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hl-pink{background:var(--pink);color:var(--ink);padding:0 8px;border-radius:4px}
+.red{color:var(--red)}
+/* layout helpers */
+.row{display:flex;gap:28px;align-items:flex-start}
+.grow{flex:1;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.center{align-items:center;justify-content:center;text-align:center}
+.spacer{flex:1}
+/* components */
+.card{background:var(--cream);color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:16px 18px;box-shadow:6px 6px 0 var(--ink)}
+.card.y{background:var(--yellow)}.card.p{background:var(--pink)}.card.s{background:var(--sky)}.card.w{background:#FFFBF5}
+.card h3{margin-bottom:6px}
+.tag{display:inline-block;font:700 17px/1 var(--label);letter-spacing:.1em;text-transform:uppercase;padding:7px 10px;border-radius:6px;border:2px solid var(--ink);background:var(--cream);color:var(--ink)}
+.tag.y{background:var(--yellow)}.tag.p{background:var(--pink)}.tag.s{background:var(--sky)}.tag.k{background:var(--ink);color:var(--cream)}
+.quote{background:#FFF3B8;border:3px solid var(--ink);border-left-width:12px;border-radius:12px;padding:16px 20px;font-size:21px;line-height:1.4;white-space:pre-wrap;color:var(--ink)}
+.quote.raw{font-family:var(--mono);font-size:17.5px;background:#FFFBF5}
+.stat{background:var(--ink);color:var(--cream);border-radius:14px;padding:16px 18px;display:grid;gap:4px;border:3px solid var(--ink)}
+.stat b{font:400 46px/1 var(--display);color:var(--yellow)}
+.stat span{font:600 19px/1.2 var(--label);letter-spacing:.04em}
+.lcd{font:700 24px/1 var(--label);font-variant-numeric:tabular-nums;letter-spacing:.06em;background:var(--lcd);color:#1A1F17;padding:8px 12px;border-radius:6px;box-shadow:inset 0 0 0 3px #8EA07C;display:inline-block}
+figure{margin:0;display:grid;gap:6px;justify-items:center}
+figcaption{font:600 18px/1.2 var(--label);letter-spacing:.04em;text-align:center}
+video,img.media{display:block;border:3px solid var(--ink);border-radius:12px;background:#000;max-width:100%}
+video.tall{height:470px;width:auto}
+video.mid{height:420px;width:auto}
+video.wide{width:100%;height:auto;max-height:470px}
+img.strip{width:100%;height:auto;border:3px solid var(--ink);border-radius:10px}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.flow .card{padding:12px 14px;box-shadow:4px 4px 0 var(--ink)}
+.flow b{display:block;font:400 26px/1 var(--display);color:var(--pink);-webkit-text-stroke:1px var(--ink)}
+.flow .card.p b{color:var(--cream)}
+.flow h3{font-size:24px}
+.flow p{font-size:16.5px;line-height:1.3}
+.timeline{display:grid;gap:8px}
+.timeline div{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:baseline}
+.timeline .lcd{font-size:20px;padding:6px 8px;text-align:center}
+.timeline p{font-size:20px}
+.ex-badge{align-self:flex-start;font:400 28px/1 var(--display);background:var(--pink);color:var(--ink);border:3px solid var(--ink);border-radius:10px;padding:10px 14px;display:inline-block;box-shadow:5px 5px 0 var(--ink)}
+.sparkle{position:absolute;z-index:1;width:46px;height:46px;fill:#fff}
+.sparkle.ink{fill:var(--ink)}
+.cloud{position:absolute;z-index:1;width:150px;height:60px;background:var(--cream);border-radius:60px 60px 0 0;opacity:.95}
+.cloud::before{content:"";position:absolute;width:80px;height:80px;border-radius:50%;background:inherit;left:22px;top:-38px}
+.cloud::after{content:"";position:absolute;width:56px;height:56px;border-radius:50%;background:inherit;left:78px;top:-20px}
+.pill{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--cream);border-radius:999px;padding:10px 18px;font:700 20px/1 var(--label);letter-spacing:.06em;text-transform:uppercase}
+.arrow{font:400 40px/1 var(--display)}
+.check li::marker{content:"✓  ";color:var(--ink)}
+table.t{border-collapse:collapse;width:100%;font-size:19px}
+table.t th,table.t td{border:2px solid var(--ink);padding:7px 10px;text-align:left;vertical-align:top;background:#FFFBF5}
+table.t th{font:700 19px/1.1 var(--label);letter-spacing:.06em;text-transform:uppercase;background:var(--yellow)}
+aside.notes{display:none}
+/* chrome */
+#counter{position:fixed;right:16px;bottom:12px;z-index:30;font:700 16px/1 var(--label);letter-spacing:.08em;color:var(--cream);background:rgba(35,30,31,.85);padding:7px 10px;border-radius:8px}
+#progress{position:fixed;left:0;bottom:0;height:5px;background:var(--yellow);z-index:30;transition:width .2s}
+#hint{position:fixed;left:16px;bottom:12px;z-index:30;font:600 14px/1 var(--label);letter-spacing:.06em;color:#CFC3B7;background:rgba(35,30,31,.85);padding:7px 10px;border-radius:8px}
+#notes{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;z-index:40;background:#FFFBF5;color:var(--ink);border-top:6px solid var(--pink);
+  padding:18px 26px 40px;font:17px/1.5 var(--body);display:none;box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+#notes.on{display:block}
+#notes h4{margin:0 0 8px;font:700 18px/1 var(--label);letter-spacing:.1em;text-transform:uppercase;color:#8a3c5c}
+#notes ul{padding-left:22px;gap:4px}
+#notes li,#notes p{font-size:17px}
+@media print{ #counter,#hint,#progress,#notes{display:none!important} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="sp" viewBox="0 0 100 100"><path d="M50 0 C55 38 62 45 100 50 C62 55 55 62 50 100 C45 62 38 55 0 50 C38 45 45 38 50 0Z"/></symbol>
+</svg>
+<div id="viewport"><div id="stage">
+
+<!-- 1 -->
+<section class="slide bg-ink rays light" data-title="Title">
+  <svg class="sparkle" style="left:1080px;top:90px"><use href="#sp"/></svg>
+  <svg class="sparkle" style="left:1160px;top:520px;width:30px;height:30px"><use href="#sp"/></svg>
+  <div class="inner">
+    <div class="kicker" style="color:var(--yellow)">Masterclass · Agentic AI for video editors</div>
+    <div class="spacer"></div>
+    <h1 style="font-size:92px">How one prompt<br>became an <span style="color:var(--pink)">animated</span><br><span style="color:var(--yellow)">reel</span></h1>
+    <p style="font-size:26px;max-width:880px;color:#E9DED2">The Casio F-91W case study: from an Instagram voice-over to a 48.5-second flat 2D animation, and on to an After Effects project.</p>
+    <div class="spacer"></div>
+    <div class="row" style="gap:12px"><span class="tag y">709 Lab</span><span class="tag p">No coding needed</span><span class="tag s">Real prompts · real files</span></div>
+  </div>
+  <aside class="notes">
+    <p>Welcome everyone. Introduce yourself: you make the 709 Lab reels, and this is a true story from one evening's work.</p>
+    <ul><li>Promise: by the end they will know how to direct an AI that does the technical work, and they will leave with a skill they can install.</li>
+    <li>Say clearly: nobody here needs to code. You didn't write a single line either.</li>
+    <li>Housekeeping: break at about 1:20, exercises need paper or a laptop, questions any time.</li></ul>
+  </aside>
+</section>
+
+<!-- 2 -->
+<section class="slide bg-sky" data-title="Before and after">
+  <div class="cloud" style="left:40px;top:640px"></div><div class="cloud" style="left:1090px;top:120px;transform:scale(.7)"></div>
+  <div class="inner">
+    <div class="kicker">Start here · watch both, with sound</div>
+    <h2>Same voice. A whole new film.</h2>
+    <div class="row center" style="gap:60px">
+      <figure><video class="tall" src="../06_media/videos/source.mp4" poster="../06_media/posters/source.jpg" controls preload="metadata"></video><figcaption>BEFORE · the 709 Lab reel (source)</figcaption></figure>
+      <div class="arrow">→</div>
+      <figure><video class="tall" src="../06_media/videos/v4.mp4" poster="../06_media/posters/v4.jpg" controls preload="metadata"></video><figcaption>AFTER · v4, animated by Claude Code</figcaption></figure>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Play the source first (48 s), then v4. Don't explain yet; let them react.</p>
+    <ul><li>Ask: "How long would this take you in After Effects?" Collect a few guesses.</li>
+    <li>Reveal: the first prompt was typed at 20:26 IST and v4 was playing at about 23:05 IST the same evening. Under three hours, with a lot of that time spent waiting and chatting.</li>
+    <li>Point out: same audio, every picture new, real photos of the watch dropped into a flat cartoon style.</li></ul>
+  </aside>
+</section>
+
+<!-- 3 -->
+<section class="slide bg-yellow grain" data-title="By the numbers">
+  <div class="inner">
+    <div class="kicker">The project in numbers</div>
+    <h2>One evening. Five versions.</h2>
+    <div class="grid3" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat"><b>48.5 s</b><span>vertical reel, 720×1280</span></div>
+      <div class="stat"><b>10</b><span>scenes, one per spoken beat</span></div>
+      <div class="stat"><b>582</b><span>frames, drawn at 12 fps</span></div>
+      <div class="stat"><b>v0→v4</b><span>every version kept</span></div>
+      <div class="stat"><b>&lt;3 h</b><span>first prompt 20:26 → v4 ≈23:05 IST</span></div>
+      <div class="stat"><b>≈$14</b><span>estimated usage by v1 (not a bill)</span></div>
+      <div class="stat"><b>809</b><span>After Effects layers exported</span></div>
+      <div class="stat"><b>12,222</b><span>keyframes in that export</span></div>
+    </div>
+    <p class="tiny muted">Sources: the casebook and chat logs in the case-study folder. Cost is the AI's own estimate from token usage at API rates, not an invoice. Times are IST, 24–25 Sep 2026.</p>
+  </div>
+  <aside class="notes">
+    <ul><li>12 fps: the reference animation is drawn at 12 drawings a second, so the reel copies that "limited animation" feel. The final MP4 is delivered at 25 fps.</li>
+    <li>582 frames ÷ 12 per second = 48.5 seconds.</li>
+    <li>Cost: say "about fourteen dollars by v1, as the AI estimated it". It is an estimate. The real figure is on your plan or billing page.</li>
+    <li>The After Effects export happened later that night (02:56 to 03:19 IST on 25 Sep).</li></ul>
+  </aside>
+</section>
+
+<!-- 4 -->
+<section class="slide bg-cream" data-title="Today's route">
+  <div class="inner">
+    <div class="kicker">Today's route · about 3 hours</div>
+    <h2>Direct it like an editor.</h2>
+    <div class="flow" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card s"><b>1</b><h3>What "agentic" means</h3><p>A tiny studio made of programs.</p></div>
+      <div class="card y"><b>2</b><h3>The brief</h3><p>"Explain it back first." <b style="display:inline;font:inherit;color:inherit;-webkit-text-stroke:0">Exercise 1</b></p></div>
+      <div class="card p"><b>3</b><h3>Build → v1</h3><p>10 helpers at once. Check-ins. Cost.</p></div>
+      <div class="card w"><b>4</b><h3>Critique → v2</h3><p>Loops, judges, and taste.</p></div>
+      <div class="card p"><b>5</b><h3>Feedback → v3</h3><p>Screenshots beat paragraphs. Exercise 2</p></div>
+      <div class="card s"><b>6</b><h3>Versions → v4</h3><p>Side-by-sides and handoffs. Exercises 3 & 4</p></div>
+      <div class="card y"><b>7</b><h3>After Effects</h3><p>809 layers you can open.</p></div>
+      <div class="card w"><b>8</b><h3>Live + your turn</h3><p>A new clip, built in the room. Quiz.</p></div>
+    </div>
+    <p class="small muted">A live build runs in the background all session: we start it after the brief and check on it at each stop.</p>
+  </div>
+  <aside class="notes">
+    <p>Walk the route quickly. Stress the live demo: you'll start a real build on a new clip around the 50-minute mark and it will keep cooking while you teach. If it fails, that's part of the lesson too; the real project had failures.</p>
+  </aside>
+</section>
+
+<!-- 5 -->
+<section class="slide bg-pink" data-title="Chatbot vs agent">
+  <div class="inner">
+    <div class="kicker">Module 1 · what "agentic" means</div>
+    <h2>A chatbot talks.<br>An agent <span class="hl">does the job</span>.</h2>
+    <div class="grid2">
+      <div class="card w"><h3>Chatbot</h3><ul><li>You ask, it answers in text.</li><li>You do the work in your apps.</li><li>It can't see your files or your render.</li></ul></div>
+      <div class="card y"><h3>Agent (Claude Code)</h3><ul><li>Works inside a folder on your computer.</li><li>Downloads, writes files, runs programs, renders video.</li><li><b>Looks at its own output</b> and tries again.</li></ul></div>
+    </div>
+    <p class="small"><b>Agentic AI</b> = an AI that takes actions in a loop: plan → do → check → fix, until the job is done or it needs you.</p>
+  </div>
+  <aside class="notes">
+    <ul><li>Analogy: a chatbot is a consultant on the phone. An agent is an assistant sitting at your workstation with your project open.</li>
+    <li>Claude Code is Anthropic's agent. It ran in the terminal (a text window for typing commands) and later in the Claude desktop app.</li>
+    <li>Key point for editors: your job shifts from operating software to directing. Brief, review, give notes, approve.</li></ul>
+  </aside>
+</section>
+
+<!-- 6 -->
+<section class="slide bg-cream grain" data-title="A tiny studio made of programs">
+  <div class="inner">
+    <div class="kicker">Module 1 · no-jargon pipeline</div>
+    <h2>A tiny animation studio made of programs</h2>
+    <div class="flow">
+      <div class="card"><b>1</b><h3>Listen</h3><p>Whisper writes down every word with its timing.</p></div>
+      <div class="card"><b>2</b><h3>Study the look</h3><p>Stills, sampled colours, line widths → a style guide.</p></div>
+      <div class="card"><b>3</b><h3>Brushes</h3><p>One shared "toolkit": palette, clouds, rays, pops, type.</p></div>
+      <div class="card"><b>4</b><h3>Scenes</h3><p>One small program per spoken beat. 10 in all.</p></div>
+      <div class="card"><b>5</b><h3>Render</h3><p>12 pictures a second, 582 PNG frames.</p></div>
+      <div class="card y"><b>6</b><h3>Assemble</h3><p>ffmpeg joins frames + the original voice-over.</p></div>
+      <div class="card y"><b>7</b><h3>Critique</h3><p>Helpers check stills, fix, re-check. A judge scores.</p></div>
+      <div class="card p"><b>8</b><h3>Your notes</h3><p>Annotated screenshots and real photos.</p></div>
+      <div class="card s"><b>9</b><h3>Versions</h3><p>Save vN, make a side-by-side with the last one.</p></div>
+      <div class="card s"><b>10</b><h3>Hand off</h3><p>Write the context down so a new session can continue.</p></div>
+    </div>
+    <p class="small">Instead of dragging keyframes, the AI writes instructions like <i>"draw a pink circle here, make it pop at 7.5 s"</i>. A render engine turns them into pictures. All 582 frames re-render in about 3 seconds.</p>
+  </div>
+  <aside class="notes">
+    <ul><li>Hand out 05_handouts/workflow_one_pager.html (printed) now; it is this slide on paper.</li>
+    <li>Why code and not a timeline? The AI can read and write code but can't drag keyframes in a UI. Code also makes every change exact and repeatable: "move the label 40 px up" is one edit.</li>
+    <li>Pink box = the human part. Everything else the agent did.</li></ul>
+  </aside>
+</section>
+
+<!-- 7 -->
+<section class="slide bg-sky" data-title="Words you'll hear">
+  <div class="inner">
+    <div class="kicker">Module 1 · six words, plain English</div>
+    <h2>Words you'll hear today</h2>
+    <div class="grid3">
+      <div class="card w"><h3>Prompt</h3><p class="small">What you type to the AI. Short, specific, with links and screenshots.</p></div>
+      <div class="card w"><h3>Agent / sub-agent</h3><p class="small">A helper copy of the AI with one job, like "animate scene 5". Several run at once.</p></div>
+      <div class="card w"><h3>Render engine</h3><p class="small">The program that turns drawing instructions into pictures. Here: pycairo.</p></div>
+      <div class="card w"><h3>Python</h3><p class="small">A programming language. Each scene is a short Python file. You never edit it.</p></div>
+      <div class="card w"><h3>Frame / fps</h3><p class="small">One still picture / how many per second. This reel: 12 drawn, delivered at 25.</p></div>
+      <div class="card w"><h3>ffmpeg</h3><p class="small">A free video tool that joins frames into an MP4, adds audio, builds side-by-sides.</p></div>
+    </div>
+    <p class="small">Full list: <b>05_handouts/glossary.md</b></p>
+  </div>
+  <aside class="notes">
+    <p>Don't lecture the glossary. Say each word once with a film-world comparison:</p>
+    <ul><li>Agent = a junior animator you can clone. Render engine = the renderer in your NLE, but driven by text. ffmpeg = Media Encoder without the buttons.</li>
+    <li>Ask: "Who has used HandBrake or Media Encoder?" Same idea as ffmpeg.</li></ul>
+  </aside>
+</section>
+
+<!-- 8 -->
+<section class="slide bg-cream" data-title="The two inputs">
+  <div class="inner">
+    <div class="kicker">Module 2 · everything we gave it</div>
+    <h2>Two videos, two different jobs</h2>
+    <div class="row" style="gap:36px;align-items:center">
+      <figure><video class="mid" src="../06_media/videos/source.mp4" poster="../06_media/posters/source.jpg" controls preload="metadata"></video><figcaption>SOURCE · script + voice-over (709 Lab)</figcaption></figure>
+      <div class="grow" style="display:grid;gap:14px">
+        <figure><video style="height:250px" src="../06_media/videos/reference.mp4" poster="../06_media/posters/reference.jpg" controls preload="metadata"></video><figcaption>STYLE REFERENCE · "iluli by Mike Lamb – Channel Trailer" (48 s, 12 fps)</figcaption></figure>
+        <div class="card y small"><p><b>Source</b> = what to say and when. <b>Reference</b> = only how it should look. Say which is which.</p></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>The reference is used for study only. The AI copied the look (flat colours, thin ink outlines, pops with overshoot, 12 drawings a second), not the content.</li>
+    <li>Optional: show 06_media/stills/reference_contact.png, the reference one frame per second. The AI studied all 48.</li>
+    <li>Later, for v3, you also gave it a folder of real photos of the watch.</li></ul>
+  </aside>
+</section>
+
+<!-- 9 -->
+<section class="slide bg-yellow" data-title="The first prompt">
+  <div class="inner">
+    <div class="kicker">Module 2 · the brief, exactly as typed (20:26 IST)</div>
+    <h2>The first prompt was messy</h2>
+    <div class="quote raw">source video for transcription and video idea to make animation on through entire video or atleast 15-20seconds.: https://www.instagram.com/p/DcTlJHJy4cZ/
+
+reference video for 2d animation: https://www.youtube.com/watch?v=8o79X5K5nhw
+
+first transcribe the video in english and hindi mix and then transliterate everythign to english from the transcription osurce vide.
+
+then understand the reference video for understanding the animation style to apply entirely as much as possible take time.
+
+explain me what you understood first</div>
+    <p class="small">Settings typed first: <code>/model</code> → Opus 5.5 (1M context) · <code>/effort</code> → ultracode. Two minutes later: <i>"You have ultracode mode… keep going… but you only have 30 minutes."</i></p>
+  </div>
+  <aside class="notes">
+    <ul><li>Show that typos didn't matter. What mattered: two links with clear roles, a clear order of steps, and the last line.</li>
+    <li>What was missing: output format, audio plan, length decision, budget. The AI asked about exactly these.</li>
+    <li>"ultracode" = the highest effort setting, which also lets the AI launch many helper agents by itself. More effort costs more.</li>
+    <li>The 30-minute deadline was missed. Helper agents failed on credits and a polish run was interrupted. Honest lesson coming up.</li></ul>
+  </aside>
+</section>
+
+<!-- 10 -->
+<section class="slide bg-cream grain" data-title="Explain it back first">
+  <div class="inner">
+    <div class="kicker">Module 2 · the most valuable line</div>
+    <h2>"Explain to me what you<br>understood <span class="hl-pink">first</span>."</h2>
+    <div class="grid2">
+      <div class="card w small"><h3>What came back in 11 seconds</h3><ul><li>Source = script + audio. Reference = the look only.</li><li>A plan: transcribe → transliterate → study the style → storyboard → build.</li><li>3 questions: real video or storyboard? Original voice-over? Full length or best 15–20 s?</li></ul></div>
+      <div class="card y small"><h3>What the transcript revealed</h3><ul><li>Whisper found the reel is <b>English only</b>, no Hindi.</li><li>So "transliteration" was just the same text in Roman script.</li><li>Caught before any real money was spent.</li></ul></div>
+    </div>
+    <p class="small">Rule: <b>make it prove it understood before it builds.</b> A misunderstanding then costs one message, not an hour.</p>
+  </div>
+  <aside class="notes">
+    <ul><li>Honest detail: you didn't answer its three questions. You replied with the ultracode message and it chose sensible defaults: real MP4, original voice-over, full 48 s.</li>
+    <li>Whisper is a speech-to-text model. It gives every line a start and end time, and those timings drove all 10 scenes.</li>
+    <li>Transition: now let's fix that messy brief ourselves.</li></ul>
+  </aside>
+</section>
+
+<!-- 11 -->
+<section class="slide bg-pink" data-title="Exercise 1">
+  <div class="inner">
+    <span class="ex-badge">Exercise 1 · 12 min</span>
+    <h2>Rewrite the messy brief</h2>
+    <div class="grid2">
+      <div class="card w small"><h3>Your job</h3><ul><li>Take the first prompt (previous slide).</li><li>Rewrite it so a stranger could run with it.</li><li>Use the 7 slots on your worksheet.</li><li>Keep "explain it back first" at the end.</li></ul></div>
+      <div class="card y small"><h3>The 7 slots</h3><ul><li>Source + its role · Reference + its role</li><li>What to animate · Language</li><li>Format and length · Real assets</li><li>Anything to avoid · then: explain first, wait for OK</li></ul></div>
+    </div>
+    <p class="small">Worksheet: <b>04_exercises/ex1_write_a_clear_brief.md</b></p>
+  </div>
+  <aside class="notes">
+    <ul><li>Pairs work well. 8 minutes to write, 4 to share two or three rewrites aloud.</li>
+    <li>Model answer is in the answer key. The skill's own template is 01_brief.md.</li>
+    <li>Watch for people over-writing style detail. The AI studies the reference itself; your job is roles, scope and limits.</li></ul>
+  </aside>
+</section>
+
+<!-- 12 -->
+<section class="slide bg-ink rays light" data-title="Live demo: checkpoint A">
+  <div class="inner center">
+    <div class="kicker" style="color:var(--yellow)">Live demo · part A · 10 min</div>
+    <h1>Switch to<br>the terminal</h1>
+    <p style="color:#E9DED2;max-width:860px">A new short clip, brief template 01, and the rule we just learned: it has to explain its plan and <b>wait for our OK</b>.</p>
+    <div class="row" style="gap:12px;justify-content:center"><span class="tag y">Checkpoint A: its understanding</span><span class="tag p">Then: approve the build</span></div>
+    <p class="tiny" style="color:#CFC3B7">Script: 07_live_demo_script.md · Fallback: play 06_media/videos/v0_draft.mp4</p>
+  </div>
+  <aside class="notes">
+    <p>Follow 07_live_demo_script.md, Part A. Paste the prepared brief. While it transcribes, explain what's on screen in plain words. When Checkpoint A arrives, read its plan aloud and ask the room for one correction to send back.</p>
+    <p>If it's slow, move on to the next slide and come back. The build takes time, and that's normal.</p>
+  </aside>
+</section>
+
+<!-- 13 -->
+<section class="slide bg-sky" data-title="v0 draft">
+  <div class="inner">
+    <div class="kicker">Module 3 · the build · 20:28 → about 21:00 IST</div>
+    <h2>v0: ten helpers animating at once</h2>
+    <div class="row" style="gap:30px">
+      <figure><video class="mid" src="../06_media/videos/v0_draft.mp4" poster="../06_media/posters/v0_draft.jpg" controls preload="metadata"></video><figcaption>v0 draft</figcaption></figure>
+      <div class="grow" style="display:grid;gap:12px">
+        <div class="card w small"><ul><li>Built a shared toolkit of "brushes": sampled palette, outlines, easing, clouds, sparkles, rays, a flat Casio watch.</li><li>Launched <b>10 scene agents in parallel</b> plus a style-guide writer.</li><li><b>8 agents stopped on "credit balance is too low"</b>. The missing scenes were re-run.</li><li>Spotted a black bomb on a black sky and gave it a cream halo.</li></ul></div>
+        <img class="strip" src="../06_media/stills/v0_draft_strip.png" alt="One frame from each of the 10 scenes of v0">
+        <p class="tiny">One frame per scene, s01 → s10</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>Parallel agents are like ten junior animators, each given one scene file. Rule learned: one scene file per agent, so they never overwrite each other.</li>
+    <li>The credit failure is a real-world lesson: parallel is fast, not free. Watch your spend.</li>
+    <li>The bomb is a cartoon on purpose. The reel stays non-instructional: stylised metaphors, no build details.</li></ul>
+  </aside>
+</section>
+
+<!-- 14 -->
+<section class="slide bg-cream" data-title="Continue x5 to v1">
+  <div class="inner">
+    <div class="kicker">Module 3 · "Continue." ×5 (20:38–20:52 IST)</div>
+    <h2>v1: exact colours, thinner lines</h2>
+    <div class="row" style="gap:30px;align-items:center">
+      <figure><video style="height:430px" src="../06_media/comparisons/01_draft_vs_v1.mp4" poster="../06_media/posters/01_draft_vs_v1.jpg" controls preload="metadata"></video><figcaption>v0 draft (left) vs v1 (right)</figcaption></figure>
+      <div class="grow card y small"><ul><li>Palette nudged to the exact colours sampled from the reference: <b>sky #6CCEF6, pink #FB6DA6, yellow #F9D117, ink #231E1F, cream #F6EDE2</b>.</li><li>Outline width 5 → 4 px.</li><li>A polish run started, then got interrupted.</li><li>Draft and v1 look almost the same, and that's fine. Small steps are easy to check.</li></ul></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>Typing "Continue." is a legitimate prompt when an agent is mid-task. But notice it gives you no control over direction.</li>
+    <li>This deck uses those same five colours.</li></ul>
+  </aside>
+</section>
+
+<!-- 15 -->
+<section class="slide bg-yellow" data-title="Check-in and cost">
+  <div class="inner">
+    <div class="kicker">Module 3 · check-in (21:06–21:27 IST)</div>
+    <h2>Ask for the real video, with sound</h2>
+    <div class="row" style="gap:30px">
+      <figure><video style="height:420px" src="../06_media/videos/v1_peek_15s.mp4" poster="../06_media/posters/v1_peek_15s.jpg" controls preload="metadata"></video><figcaption>The 16-second peek (20.5–36.5 s of v1)</figcaption></figure>
+      <div class="grow" style="display:grid;gap:12px">
+        <div class="quote">"Play the video version with audio, not the HTML animation."</div>
+        <div class="card w small"><ul><li>Previews first came as a GIF and a browser animation. You wanted the MP4 in QuickTime.</li><li>"How much have you spent?" The AI's estimate: <b>about $14.22 by v1</b> in API terms. That's an estimate, not a bill. Check <code>/cost</code> or your billing page.</li><li>Most expensive phase: a polish run whose fixes never made it into the video.</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>Lesson: judge with your eyes and ears on the real deliverable. HTML (the language of web pages) previews are not the MP4.</li>
+    <li>Cost breakdown by phase is in 05_handouts/cost_and_time.md. Main session $3.15, first scene run $2.84, re-run $2.71, interrupted polish $5.52.</li>
+    <li>LIVE DEMO part B: switch to the terminal, approve the plan with prompt 02 (build), then come back for the break.</li></ul>
+  </aside>
+</section>
+
+<!-- 16 -->
+<section class="slide bg-ink" data-title="Break">
+  <div class="cloud" style="left:120px;top:560px;opacity:.15"></div><div class="cloud" style="left:980px;top:180px;opacity:.15"></div>
+  <div class="inner center">
+    <div class="kicker" style="color:var(--yellow)">10-minute break</div>
+    <h1>The agents keep<br>working. <span style="color:var(--pink)">You don't.</span></h1>
+    <p style="color:#E9DED2">The live build is running in the background. We'll check on it right after the break.</p>
+  </div>
+  <aside class="notes"><p>Before leaving the stage, glance at the terminal: is it still running, or waiting for a question? Answer any question it asked, then break.</p></aside>
+</section>
+
+<!-- 17 -->
+<section class="slide bg-pink" data-title="Did you critique it?">
+  <div class="inner">
+    <div class="kicker">Module 4 · 21:36 IST</div>
+    <h2>"Did you critique it against<br>the exact style?"</h2>
+    <div class="grid2">
+      <div class="card w small"><h3>Its honest answer</h3><ul><li>No. Only <b>2 of 10</b> scene critiques had finished.</li><li>It corrected an earlier claim that all 10 were saved.</li><li>Its own rating of v1: <b>about 6/10</b> on style match.</li><li>Scene 2 scored 6.5, scene 4 scored 5.5.</li></ul></div>
+      <div class="card y small"><h3>What it proposed</h3><ul><li>Critique → fix → verify for every scene.</li><li>A continuity check across cuts.</li><li>Cost guess for the round: about $6–10 (an estimate).</li><li>Then: "Should I start it?"</li></ul></div>
+    </div>
+    <p class="small">You replied: <i>"Now continue and finish the rest of the pending tasks. Spawn multiple sub-agents if required to finish faster."</i></p>
+  </div>
+  <aside class="notes">
+    <ul><li>Asking "did you check your work?" is a director's question. Ask it every time.</li>
+    <li>Notice that the AI corrected itself. Agents can be wrong about their own progress, so verify.</li>
+    <li>LIVE DEMO part C: quick status check with prompt 03 (3-line status + current MP4).</li></ul>
+  </aside>
+</section>
+
+<!-- 18 -->
+<section class="slide bg-cream grain" data-title="The polish loop and the judge">
+  <div class="inner">
+    <div class="kicker">Module 4 · polish run 21:55 → v2 at 22:15 IST</div>
+    <h2>v2: critic → fixer → verifier → judge</h2>
+    <div class="row" style="gap:28px">
+      <figure><video style="height:420px" src="../06_media/comparisons/02_v1_vs_v2.mp4" poster="../06_media/posters/02_v1_vs_v2.jpg" controls preload="metadata"></video><figcaption>v1 (left) vs v2 (right)</figcaption></figure>
+      <div class="grow" style="display:grid;gap:12px">
+        <div class="card w small"><ul><li>42 helper agents. For each scene one critiques stills, one fixes, one re-checks. Scenes 3, 4, 5, 6 and 10 needed a second fix.</li><li>Continuity pass: 8 problems at scene cuts fixed. Outlines down to 3 px.</li></ul></div>
+        <div class="card p small"><h3>Style judge: 6.5 / 10</h3><p>Gaps: characters off-model, text-heavy infographics, no grain, no ink line on colour splits, flat grid.</p></div>
+        <p class="small"><b>A score is not taste.</b> Useful as a gap list. Your notes decide what matters.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>"Style judge" = one more helper agent, told to compare against the reference only and give a number.</li>
+    <li>The per-scene reviewers gave 8–8.5 (general quality). The judge gave 6.5 (exact style match). Different questions, different numbers.</li>
+    <li>This round used about 1.7M tokens across its agents.</li></ul>
+  </aside>
+</section>
+
+<!-- 19 -->
+<section class="slide bg-yellow" data-title="Three screenshots">
+  <div class="inner">
+    <div class="kicker">Module 5 · 22:32 IST · the single most effective prompt</div>
+    <h2>Screenshots beat paragraphs</h2>
+    <div class="grid3" style="align-items:start">
+      <figure><img class="media" style="height:250px;width:100%;object-fit:contain;background:#fff" src="../06_media/feedback/feedback_image_3.png" alt="Feedback 1: replace the stick figure with real photos inside the dotted box"><figcaption>1 · Replace the stick figure with real photos. Keep the dotted box.</figcaption></figure>
+      <figure><img class="media" style="height:250px;width:100%;object-fit:contain;background:#fff" src="../06_media/feedback/feedback_image_5.png" alt="Feedback 2: real circuit photo as proof, transparent backgrounds"><figcaption>2 · Real circuit photo as proof. All images transparent.</figcaption></figure>
+      <figure><img class="media" style="height:250px;width:100%;object-fit:contain;background:#fff" src="../06_media/feedback/feedback_image_7.png" alt="Feedback 3: real watch, black and red type, rays over the whole screen"><figcaption>3 · Real watch. "THE CASIO" black + "F-91W" red. Rays everywhere.</figcaption></figure>
+    </div>
+    <p class="small">Each image = <b>a frame of v2</b> + <b>what to use instead</b> + <b>a few words</b>. Plus a photo folder: "pick the images from here".</p>
+  </div>
+  <aside class="notes">
+    <ul><li>Open each image full-screen (they're in 06_media/feedback/). Read the handwriting aloud.</li>
+    <li>Pattern: WHERE (the frame) + WHAT'S WRONG + WHAT INSTEAD (a reference image). No adjectives like "make it pop".</li>
+    <li>Before touching anything, the AI wrote these notes into FEEDBACK_V3.md, a permanent checklist.</li></ul>
+  </aside>
+</section>
+
+<!-- 20 -->
+<section class="slide bg-sky" data-title="v3 result">
+  <div class="inner">
+    <div class="kicker">Module 5 · v3 ready at 22:43 IST (11 minutes)</div>
+    <h2>v3: your notes, applied everywhere</h2>
+    <div class="row" style="gap:28px">
+      <figure><video style="height:430px" src="../06_media/comparisons/03_v2_vs_v3.mp4" poster="../06_media/posters/03_v2_vs_v3.jpg" controls preload="metadata"></video><figcaption>v2 (left) vs v3 (right)</figcaption></figure>
+      <div class="grow" style="display:grid;gap:12px">
+        <div class="card w small"><ul><li>8 agents, one per affected scene.</li><li>Every photo cut out with a transparent background (Apple Vision). The wrist photo is clipped inside the dotted box.</li><li>A real F-91W photo with a <b>live, ticking LCD</b> in every scene.</li><li>Real circuit photo as still "proof". "THE CASIO / F-91W" type, full-screen rays.</li></ul></div>
+        <div class="row" style="gap:10px">
+          <img class="media" style="height:120px;background:#fff" src="../06_media/photos/PNG__watch_circuitertere_.jpg" alt="Original circuit photo">
+          <div class="arrow" style="align-self:center">→</div>
+          <img class="media" style="height:120px;background:#fff" src="../06_media/photos/cutout__circuit_b.jpg" alt="Cut-out made by the AI">
+        </div>
+        <p class="tiny">Your photo → the AI's cut-out (a photo whose background has been removed)</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>Give it your real assets. Pointing at a folder let it pick the right images, remove the backgrounds and place them. Name your files clearly.</li>
+    <li>One agent accidentally deleted two frames of a neighbour scene and restored them. That's why the rule is: re-render ALL scenes before assembling.</li>
+    <li>The circuit photo is shown as a still "proof" image with a stylised pulse. No build details, on purpose.</li></ul>
+  </aside>
+</section>
+
+<!-- 21 -->
+<section class="slide bg-pink" data-title="Exercise 2">
+  <div class="inner">
+    <span class="ex-badge">Exercise 2 · 12 min</span>
+    <h2>Turn a vague note into a screenshot note</h2>
+    <div class="row" style="gap:22px">
+      <img class="media" style="height:330px" src="../06_media/exercise_frames/ex2_v2_s01_0m01s5_title_and_character.png" alt="v2 frame at 1.5 s">
+      <img class="media" style="height:330px" src="../06_media/exercise_frames/ex2_v2_s02_0m05s0_watch_reveal.png" alt="v2 frame at 5.0 s">
+      <img class="media" style="height:330px" src="../06_media/exercise_frames/ex2_v2_s06_0m22s5_inside_the_watch.png" alt="v2 frame at 22.5 s">
+      <img class="media" style="height:330px" src="../06_media/exercise_frames/ex2_v2_s07_0m27s0_rewired_diagram.png" alt="v2 frame at 27.0 s">
+    </div>
+    <p class="small">Vague note: <i>"The watch looks fake and the start is weird. Make it more real."</i> → Pick one frame. Circle, arrow, 1–2 lines: <b>where · what's wrong · what instead</b>.</p>
+  </div>
+  <aside class="notes">
+    <ul><li>Frames are in 06_media/exercise_frames/. On a Mac: open in Preview → Markup (pen icon) → draw and add text. Or print and use a marker.</li>
+    <li>Share 2–3 results. Compare with the real feedback images from the previous slides.</li>
+    <li>Worksheet and answer key: 04_exercises/ex2_screenshot_feedback.md</li></ul>
+  </aside>
+</section>
+
+<!-- 22 -->
+<section class="slide bg-cream" data-title="Keep every version">
+  <div class="inner">
+    <div class="kicker">Module 6 · 22:46 IST</div>
+    <h2>Keep every version. Compare pairs.</h2>
+    <div class="row" style="gap:30px">
+      <figure><video style="height:430px" src="../06_media/comparisons/04_source_vs_v3.mp4" poster="../06_media/posters/04_source_vs_v3.jpg" controls preload="metadata"></video><figcaption>Original reel (left) vs v3 (right)</figcaption></figure>
+      <div class="grow" style="display:grid;gap:12px">
+        <div class="quote small">"I also want side-by-side videos: the draft next to v1, v1 next to v2, and so on up to vx next to vx+1."</div>
+        <table class="t"><tr><th>File</th><th>Shows</th></tr>
+          <tr><td>00_source_vs_v1</td><td>original vs v1</td></tr>
+          <tr><td>01_draft_vs_v1</td><td>v0 vs v1</td></tr>
+          <tr><td>02_v1_vs_v2 · 03_v2_vs_v3</td><td>each polish step</td></tr>
+          <tr><td>04_source_vs_v3 · 05_v3_vs_v4</td><td>original vs v3 · the last step</td></tr></table>
+        <p class="small">Older on the <b>left</b>, newer on the <b>right</b>, newer audio. Never overwrite a released version.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>Editors already do this with version stacks. The side-by-side makes every change obvious and catches regressions (things that got worse).</li>
+    <li>Once asked, the AI made it a rule: every new version gets its comparison automatically.</li></ul>
+  </aside>
+</section>
+
+<!-- 23 -->
+<section class="slide bg-yellow grain" data-title="The handoff">
+  <div class="inner">
+    <div class="kicker">Module 6 · 22:51 → 23:17 IST</div>
+    <h2>Write the context down, then switch</h2>
+    <div class="timeline">
+      <div><span class="lcd">22:51</span><p>"Write all the context into the project folder so we can pick up from there." → <b>HANDOFF.md</b> (story, pipeline, scene map, versions, feedback, open issues, costs) + <b>CLAUDE.md</b> (read-me-first rules).</p></div>
+      <div><span class="lcd">22:57</span><p>New session in the Claude desktop app: "Pull all the context from this folder." It summarised v3 and the open issues without being told any history.</p></div>
+      <div><span class="lcd">22:58</span><p>"Read HANDOFF.md and continue from v3." → it fixed the open issues. <b>v4 at 23:05</b>: 7 helper agents, 7 scenes, about 7 minutes.</p></div>
+      <div><span class="lcd">23:17</span><p>"What did you just do?" It listed every action, admitted it had started v4 without asking, and offered to undo it all.</p></div>
+    </div>
+    <p class="small">Better continue prompt: <i>"Read the handoff, tell me in 5 lines where we are and what you plan. <b>Wait for my OK.</b>"</i></p>
+  </div>
+  <aside class="notes">
+    <ul><li>Long projects outlive one chat. The handoff file is the memory. CLAUDE.md is a file Claude Code reads automatically when it opens that folder.</li>
+    <li>The "continue" line was probably meant as the line to paste, not a go-ahead. The agent took it as "go". Nothing was lost (versions are never overwritten), but ask for a plan first.</li></ul>
+  </aside>
+</section>
+
+<!-- 24 -->
+<section class="slide bg-sky" data-title="v4 and exercises 3 and 4">
+  <div class="inner">
+    <div class="kicker">Module 6 · v4: the open-issues pass</div>
+    <h2>v4, and two quick exercises</h2>
+    <div class="row" style="gap:28px">
+      <figure><video style="height:430px" src="../06_media/comparisons/05_v3_vs_v4.mp4" poster="../06_media/posters/05_v3_vs_v4.jpg" controls preload="metadata"></video><figcaption>v3 (left) vs v4 (right)</figcaption></figure>
+      <div class="grow" style="display:grid;gap:14px">
+        <div class="card p small"><h3>Exercise 4 · 6 min</h3><p>Watch this side-by-side twice, then use the 5 still pairs. List every change you can spot. <b>ex4_spot_the_difference.md</b></p></div>
+        <div class="card y small"><h3>Exercise 3 · 6 min</h3><p>Read the short HANDOFF (state at v3). Write the prompt that starts the next session safely. <b>ex3_handoff_continue_prompt.md</b></p></div>
+        <p class="tiny">Don't reveal the answers until both are done: the answer keys are in 04_exercises/answer_keys/.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>v4 changes (answer key): signs no longer overlap the dome; the circuit-photo watch shows the story's time (10:29 → 10:30); faint print grain; ink lines on pink/yellow splits; gently warping grid with fewer labels; real lifestyle photo on "hides in plain sight"; the little cartoon character redrawn in the reference's style.</li>
+    <li>Side note: the grain made the file about 4× bigger (48 MB vs 12 MB). Every choice has a cost.</li></ul>
+  </aside>
+</section>
+
+<!-- 25 -->
+<section class="slide bg-ink" data-title="After Effects export">
+  <div class="inner">
+    <div class="kicker" style="color:var(--yellow)">Module 7 · 25 Sep, 02:56–03:19 IST</div>
+    <h2 style="color:var(--cream)">Hand it to a human: After Effects</h2>
+    <div class="row" style="gap:28px">
+      <figure><video style="height:420px" src="../06_media/videos/ae_rebuilt_from_xml.mp4" poster="../06_media/posters/ae_rebuilt_from_xml.jpg" controls preload="metadata"></video><figcaption style="color:var(--cream)">Rebuilt only from the exported data</figcaption></figure>
+      <div class="grow" style="display:grid;gap:12px">
+        <div class="grid2" style="gap:12px">
+          <div class="stat" style="background:#2F2829"><b>809</b><span>layers in 10 scene comps</span></div>
+          <div class="stat" style="background:#2F2829"><b>12,222</b><span>keyframes (position, scale, rotation, opacity)</span></div>
+          <div class="stat" style="background:#2F2829"><b>598</b><span>image layers with keyframes</span></div>
+          <div class="stat" style="background:#2F2829"><b>211</b><span>PNG-sequence layers</span></div>
+        </div>
+        <div class="card w small"><ul><li>Only After Effects can write a real .aep, so you get an XML file (all layers and keyframes) plus a script (.jsx) that builds the project inside AE.</li><li>Checked by re-rendering every frame from that data: 46 dB average match, which looks identical to the eye.</li><li><b>Not yet tested inside After Effects itself.</b></li></ul></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <ul><li>XML = a plain-text file of structured data. JSX = After Effects' scripting language. To open: File › Scripts › Run Script File… › build_casio_v4.jsx, then Save As.</li>
+    <li>Includes the voice-over and a marker for every spoken line and scene cut (26 markers).</li>
+    <li>Be honest: AE wasn't installed on that Mac, so the script only passed a syntax check. Optional Exercise 5 lets attendees try it.</li>
+    <li>LIVE DEMO part D comes next: back to the terminal to see the live build.</li></ul>
+  </aside>
+</section>
+
+<!-- 26 -->
+<section class="slide bg-cream grain" data-title="Reuse it: the skill">
+  <div class="inner">
+    <div class="kicker">Module 8 · do it again on your own video</div>
+    <h2>The whole workflow, as a skill</h2>
+    <div class="row" style="gap:28px">
+      <div class="card y small" style="width:440px"><h3>Install once</h3><ul><li>Copy <code>reference-style-reel</code> into <code>~/.claude/skills/</code></li><li>Run <code>setup_check.sh</code> until all required items say OK.</li><li>Open Claude Code in an empty project folder.</li><li>Paste prompt 01 with your two links.</li></ul></div>
+      <div class="grow"><table class="t small"><tr><th>#</th><th>Prompt</th><th>You get</th></tr>
+        <tr><td>01</td><td>Brief</td><td>its understanding, then it waits</td></tr>
+        <tr><td>02</td><td>Build</td><td>first MP4 with the original audio</td></tr>
+        <tr><td>03</td><td>Status + preview</td><td>3-line status + the current MP4</td></tr>
+        <tr><td>04</td><td>Critique + polish</td><td>next version + judge's gap list</td></tr>
+        <tr><td>05</td><td>Screenshot feedback</td><td>FEEDBACK file, fixes, next version</td></tr>
+        <tr><td>06–08</td><td>Versions · Handoff · Continue</td><td>side-by-sides, HANDOFF.md, safe restart</td></tr>
+        <tr><td>09</td><td>After Effects export</td><td>layers + keyframes + build script</td></tr></table></div>
+    </div>
+    <p class="small">A <b>skill</b> is a folder of instructions and scripts that teaches Claude a repeatable workflow. What it can't do: pick your taste.</p>
+  </div>
+  <aside class="notes">
+    <ul><li>Condensed prompts with the real examples: 05_handouts/prompt_cheatsheet.md.</li>
+    <li>The skill folder ships in the case-study zip: casio-reel-masterclass/skill/reference-style-reel/.</li></ul>
+  </aside>
+</section>
+
+<!-- 27 -->
+<section class="slide split-yp" data-title="Nine lessons">
+  <div class="inner">
+    <div class="kicker">What actually steered the result</div>
+    <h2>Nine lessons for editors</h2>
+    <div class="grid3" style="gap:12px">
+      <div class="card w small"><h3>1 · Explain it back first</h3><p>Catch mistakes before money is spent.</p></div>
+      <div class="card w small"><h3>2 · Screenshots beat paragraphs</h3><p>Point at the thing. Say what instead.</p></div>
+      <div class="card w small"><h3>3 · Give it real assets</h3><p>A named folder of photos works.</p></div>
+      <div class="card w small"><h3>4 · Watch the real MP4</h3><p>With sound, in your player.</p></div>
+      <div class="card w small"><h3>5 · Keep every version</h3><p>Side-by-side each pair.</p></div>
+      <div class="card w small"><h3>6 · Write the context down</h3><p>HANDOFF.md before switching.</p></div>
+      <div class="card w small"><h3>7 · Parallel is fast, not free</h3><p>≈$14 by v1 (estimate). Watch spend.</p></div>
+      <div class="card w small"><h3>8 · A score is not taste</h3><p>6.5/10 is a gap list, not a verdict.</p></div>
+      <div class="card w small"><h3>9 · Ask what it just did</h3><p>It should list and offer to undo.</p></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Ask the room which lesson surprised them most. Then run the quick-fire quiz (08_quiz.md, pick 5 questions) before the final slide.</p></aside>
+</section>
+
+<!-- 28 -->
+<section class="slide bg-ink rays light" data-title="Your turn">
+  <svg class="sparkle" style="left:1100px;top:110px"><use href="#sp"/></svg>
+  <div class="inner">
+    <div class="kicker" style="color:var(--yellow)">Monday morning</div>
+    <h1 style="color:var(--cream)">Your turn.</h1>
+    <div class="grid2" style="max-width:1000px">
+      <div class="card y small"><ul><li>Install Claude Code + the skill.</li><li>Pick one 15–30 s voice-over reel you own.</li><li>Pick one style reference you love.</li></ul></div>
+      <div class="card p small"><ul><li>Brief → explain first → build.</li><li>Notes as annotated screenshots.</li><li>Keep versions. Write the handoff.</li></ul></div>
+    </div>
+    <p style="color:#E9DED2">Take-home: <b>09_certificate_or_takeaways.md</b> · prompt cheatsheet · glossary · dos and don'ts</p>
+    <p class="tiny" style="color:#CFC3B7">Source reel © 709 Lab. Style reference © Mike Lamb (iluli), shown for study. The reel shows the bomb as a cartoon and the real circuit only as a still "proof" photo; it contains no build instructions.</p>
+  </div>
+  <aside class="notes"><p>Thank everyone. Hand out the takeaways page. Invite them to share their first reel with you. Open Q&A with the live demo still on screen.</p></aside>
+</section>
+
+</div></div>
+
+<div id="progress"></div>
+<div id="hint">← → / space / click · N notes · F fullscreen</div>
+<div id="counter">1 / 1</div>
+<div id="notes" aria-live="polite"></div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('stage');
+  var counter = document.getElementById('counter');
+  var progress = document.getElementById('progress');
+  var notes = document.getElementById('notes');
+  var hint = document.getElementById('hint');
+  var i = 0, notesOn = false;
+  function fit(){
+    var s = Math.min(window.innerWidth/1280, window.innerHeight/720);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  function pauseAll(){
+    Array.prototype.forEach.call(document.querySelectorAll('video'), function(v){ try{ v.pause(); }catch(e){} });
+  }
+  function show(n){
+    n = Math.max(0, Math.min(slides.length-1, n));
+    pauseAll();
+    slides[i].classList.remove('active');
+    i = n;
+    slides[i].classList.add('active');
+    counter.textContent = (i+1) + ' / ' + slides.length;
+    progress.style.width = ((i+1)/slides.length*100) + '%';
+    var a = slides[i].querySelector('aside.notes');
+    notes.innerHTML = '<h4>Speaker notes · ' + (i+1) + ' · ' + (slides[i].getAttribute('data-title')||'') + '</h4>' + (a ? a.innerHTML : '<p>(no notes)</p>');
+    if (history.replaceState) { try{ history.replaceState(null, '', '#' + (i+1)); }catch(e){} }
+  }
+  function next(){ show(i+1); }
+  function prev(){ show(i-1); }
+  document.addEventListener('keydown', function(e){
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar' || k === 'Enter') { e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); prev(); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length-1); }
+    else if (k === 'n' || k === 'N') { notesOn = !notesOn; notes.classList.toggle('on', notesOn); }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){});
+      else if (document.exitFullscreen) document.exitFullscreen().catch(function(){});
+    }
+    else if (k === 'h' || k === 'H') { hint.style.display = hint.style.display === 'none' ? '' : 'none'; }
+  });
+  document.getElementById('viewport').addEventListener('click', function(e){
+    if (e.target.closest('video,a,button,input,select,textarea,#notes')) return;
+    if (e.clientX < window.innerWidth * 0.2) prev(); else next();
+  });
+  // Space on a focused video should advance the deck, not toggle playback
+  Array.prototype.forEach.call(document.querySelectorAll('video'), function(v){ v.setAttribute('playsinline',''); });
+  window.addEventListener('resize', fit);
+  fit();
+  var start = parseInt((location.hash||'').replace('#',''), 10);
+  slides[0].classList.add('active');
+  show(isNaN(start) ? 0 : start-1);
+  setTimeout(function(){ hint.style.opacity = '.55'; }, 6000);
+})();
+</script>
+</body>
+</html>

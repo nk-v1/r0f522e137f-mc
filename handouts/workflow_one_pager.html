@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel Pipeline One-Pager</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;600;700&display=swap">
+<style>
+:root{
+  --sky:#6CCEF6; --pink:#FB6DA6; --yellow:#F9D117; --ink:#231E1F; --cream:#F6EDE2; --paper:#FFFBF5;
+  --display:"Archivo Black","Arial Black",Impact,sans-serif;
+  --label:"Barlow Condensed","DIN Condensed","Arial Narrow",sans-serif;
+  --body:Figtree,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+@page{size:A4 portrait;margin:10mm}
+*{box-sizing:border-box}
+html{background:#d9d0c6}
+body{margin:0;font:13px/1.4 var(--body);color:var(--ink);background:#d9d0c6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;min-height:297mm;margin:16px auto;background:var(--paper);padding:12mm 12mm 10mm;box-shadow:0 6px 24px rgba(0,0,0,.18);position:relative;overflow:hidden}
+@media print{html,body{background:#fff}.page{margin:0;box-shadow:none;width:auto;min-height:auto;padding:0}}
+@media (max-width:820px){.page{width:auto;margin:0;padding:16px}}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:4px solid var(--ink);padding-bottom:8px;margin-bottom:10px}
+h1{font:400 30px/1 var(--display);margin:0;letter-spacing:-.01em}
+h1 span{color:var(--pink);-webkit-text-stroke:.6px var(--ink)}
+.sub{font:700 13px/1.2 var(--label);letter-spacing:.12em;text-transform:uppercase}
+h2{font:700 16px/1 var(--label);letter-spacing:.12em;text-transform:uppercase;margin:12px 0 6px}
+.flow{display:grid;grid-template-columns:repeat(2,1fr);gap:0 14px}
+.step{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:start;border:2px solid var(--ink);border-radius:10px;padding:7px 9px;margin-bottom:14px;background:#fff;position:relative;box-shadow:3px 3px 0 var(--ink)}
+.step .n{font:400 20px/1 var(--display);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--sky);border:2px solid var(--ink)}
+.step b{font:700 15px/1.1 var(--label);letter-spacing:.04em;text-transform:uppercase;display:block}
+.step p{margin:2px 0 0;font-size:12px}
+.step.you{background:#FFE3EE}.step.you .n{background:var(--pink)}
+.step.check .n{background:var(--yellow)}
+.step::after{content:"↓";position:absolute;left:18px;bottom:-15px;font:700 13px/1 var(--body)}
+.step.last::after{content:""}
+.col{display:flex;flex-direction:column}
+.cp{display:inline-block;font:700 11px/1 var(--label);letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--cream);padding:3px 6px;border-radius:4px;margin-left:4px;vertical-align:1px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.box{border:2px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff}
+.box.y{background:#FFF3B8}.box.s{background:#E1F5FD}.box.p{background:#FFE3EE}
+.box h3{margin:0 0 4px;font:700 14px/1 var(--label);letter-spacing:.08em;text-transform:uppercase}
+.box ul{margin:0;padding-left:16px}
+.box li{font-size:11.5px;margin:1px 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;background:var(--cream);padding:0 4px;border-radius:3px}
+.legend{display:flex;gap:12px;font-size:11.5px;flex-wrap:wrap}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);vertical-align:-2px;margin-right:4px}
+footer{margin-top:10px;font-size:10.5px;opacity:.75;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rays{position:absolute;right:-90px;top:-90px;width:240px;height:240px;border-radius:50%;opacity:.25;pointer-events:none;
+  background:repeating-conic-gradient(var(--yellow) 0 6deg,transparent 6deg 18deg)}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="rays" aria-hidden="true"></div>
+  <header>
+    <div>
+      <div class="sub">Masterclass handout · Agentic AI for video editors</div>
+      <h1>From one prompt to an <span>animated reel</span></h1>
+    </div>
+    <div class="sub" style="text-align:right">Casio F-91W case study<br>48.5 s · 10 scenes · 582 frames · 12 fps</div>
+  </header>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--sky)"></i>the AI does it</span>
+    <span><i class="dot" style="background:var(--yellow)"></i>the AI checks itself</span>
+    <span><i class="dot" style="background:var(--pink)"></i>YOU direct it</span>
+    <span><span class="cp">A–D</span> the AI stops and shows you something</span>
+  </div>
+
+  <h2>The pipeline, in plain words</h2>
+  <div class="flow">
+    <div class="col">
+      <div class="step you"><span class="n">1</span><div><b>Brief</b><p>Two links with roles: <b>source</b> = script + voice-over, <b>reference</b> = the look only. End with "explain first, wait for my OK".</p></div></div>
+      <div class="step"><span class="n">2</span><div><b>Listen</b><p>Whisper (speech-to-text) writes every line with start and end times. Those times drive every scene.</p></div></div>
+      <div class="step"><span class="n">3</span><div><b>Study the look</b><p>The reference is cut into stills. Colours sampled, line widths measured, timing counted → a written style guide.</p></div></div>
+      <div class="step you"><span class="n">4</span><div><b>Approve the plan <span class="cp">A</span></b><p>It explains the story beats, the style and the scene plan. You correct it, then say go.</p></div></div>
+      <div class="step"><span class="n">5</span><div><b>Brushes</b><p>One shared toolkit: palette, outlines, clouds, sparkles, rays, pops, type, the product.</p></div></div>
+      <div class="step last"><span class="n">6</span><div><b>Scenes, in parallel</b><p>One small program per spoken beat. Helper agents write them at the same time, one scene file each.</p></div></div>
+    </div>
+    <div class="col">
+      <div class="step"><span class="n">7</span><div><b>Render + assemble <span class="cp">B</span></b><p>12 pictures a second as PNG frames; ffmpeg joins them under the original voice-over into an MP4.</p></div></div>
+      <div class="step check"><span class="n">8</span><div><b>Critique → fix → verify</b><p>Helpers compare stills to the reference, fix, re-check. A judge scores it. (v2: 6.5/10, a to-do list, not a verdict.)</p></div></div>
+      <div class="step you"><span class="n">9</span><div><b>Your notes</b><p>Annotated screenshots: where · what's wrong · what instead. Plus a folder of real photos; it cuts out their backgrounds.</p></div></div>
+      <div class="step"><span class="n">10</span><div><b>Version + compare <span class="cp">C</span></b><p>Saved as vN, never overwritten. Side-by-side: older left, newer right.</p></div></div>
+      <div class="step"><span class="n">11</span><div><b>Hand off <span class="cp">D</span></b><p>HANDOFF.md + CLAUDE.md so a new session continues without re-explaining. Ask it to summarise and wait.</p></div></div>
+      <div class="step last"><span class="n">12</span><div><b>Export (optional)</b><p>After Effects: layers + keyframes (XML) + a build script. v4: 809 layers, 12,222 keyframes. Not yet tested inside AE.</p></div></div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="box y">
+      <h3>Say these out loud</h3>
+      <ul>
+        <li>"Explain what you understood first. Wait for my OK."</li>
+        <li>"Play the MP4 with audio, not the HTML."</li>
+        <li>"Did you critique it against the reference?"</li>
+        <li>"Write my notes into a FEEDBACK file first."</li>
+        <li>"What did you just do?"</li>
+      </ul>
+    </div>
+    <div class="box s">
+      <h3>The Casio evening (IST)</h3>
+      <ul>
+        <li>20:26 brief → v1 around 21:00</li>
+        <li>22:15 v2 (polish, 42 agents)</li>
+        <li>22:43 v3 (3 screenshots, 11 min)</li>
+        <li>23:05 v4 (new session, 7 min)</li>
+        <li>≈$14 by v1: the AI's <i>estimate</i>, not a bill</li>
+      </ul>
+    </div>
+    <div class="box p">
+      <h3>Where things end up</h3>
+      <ul>
+        <li><code>out/versions/</code> every vN.mp4</li>
+        <li><code>out/comparisons/</code> side-by-sides</li>
+        <li><code>feedback/vN/</code> your screenshots</li>
+        <li><code>HANDOFF.md</code> the project's memory</li>
+        <li><code>ae_export/</code> After Effects package</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <span>Why code, not a timeline? The AI can write code but can't drag keyframes. Every change is exact, and all 582 frames re-render in about 3 seconds.</span>
+    <span>Reuse it: the <b>reference-style-reel</b> skill, prompts 01–09.</span>
+  </footer>
+</div>
+</body>
+</html>
